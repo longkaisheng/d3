@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+text{
+  pointer-events: none;
+}
+.links line {
+  stroke: #aaa;
+}
+.nodes circle {
+  stroke: none;
+  stroke-width: 40px;
+}
+</style>
+<svg width="960" height="800"></svg>
+<script src="js/d3.v4.min.js"></script>
+<script>
+
+var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+
+    svg.append('defs').append('marker')
+      .attr('id','arrowhead')
+      .attr('viewBox','-0 -5 10 10')
+      .attr('refX',31)
+      .attr('refY',0)
+      .attr('orient','auto')
+      .attr('markerWidth',13)
+      .attr('markerHeight',13)
+      .attr('markerUnits','userSpaceOnUse')
+      .attr('xoverflow','visible')
+      .append('svg:path')
+      .attr('d', 'M0,-5L10,0L0,5')
+      .attr('fill', '#000')
+      .style('stroke','#000');
+
+var simulation = d3.forceSimulation()
+    .force("link", d3.forceLink().id(function (d) {return d.id}).distance(150))
+    .force("charge", d3.forceManyBody().strength(function(){return -200}))
+    .force("center", d3.forceCenter(width / 2, height / 2));
+
+d3.json("js/miserables.json", function(error, graph) {
+  if (error) throw error;
+
+  var colors = d3.scaleOrdinal(d3.schemeCategory10);
+
+
+  var link = svg.selectAll(".link")
+      .data(graph.links)
+      .enter()
+      .append("line")
+      .attr("class", "link")
+      .style("pointer-events", "none")
+      .style("stroke","#A254A2")
+      .style("stroke-width",1)//线条粗细
+      .attr('marker-end','url(#arrowhead)')
+
+  link.append("title")
+      .text(function (d) {return d.type;});
+
+  var edgepaths = svg.selectAll(".edgepath")
+    .data(graph.links)
+    .enter()
+    .append('path')
+    .attr('class','edgepath')
+    .attr('fill-opacity',0)
+    .attr('stroke-opacity',0)
+    .attr('id', function (d, i) {return 'edgepath' + i})
+    .style("pointer-events", "none");
+
+  var edgelabels = svg.selectAll(".edgelabel")
+      .data(graph.links)
+      .enter()
+      .append('text')
+      .style("pointer-events", "none")
+      .attr('class','edgelabel')
+      .attr('id', function (d, i) {return 'edgelabel' + i})
+      .attr('font-size','edgelabel')
+      .attr('fill','#aaa');
+
+  edgelabels.append('textPath')
+      .attr('xlink:href', function (d, i) {return '#edgepath' + i})
+      .style("text-anchor", "middle")
+      .style("pointer-events", "none")
+      .style("font-size","15px")
+      .style("fill","#555")
+      .attr("startOffset", "50%")
+      .text(function (d) {return d.type});
+
+var node = svg.selectAll(".node")
+    .data(graph.nodes)
+    .enter()
+    .append("g")
+    .attr("class", "node")
+    .call(d3.drag()
+      .on("start", dragstarted)
+      .on("drag", dragged)
+      .on("end", dragended)
+    );
+
+    node.append("circle")
+    .attr("r", 28)
+    .on("mouseover",function (node) {
+        //显示连接线上的文字
+        edgelabels.style("fill-opacity",function(edge){
+            if( edge.source === node || edge.target === node ){
+                return 1.0;
+            }else{
+                return 0
+            }
+        })
+        //让连接线加粗
+        d3.selectAll(".link").style("stroke-width",function(line){
+            if(line.source.name==node.name || line.target.name==node.name){
+                return 4;
+            }else{
+                return 1;
+            }
+        })
+    })
+    .on("mouseout",function(){
+        //隐去连接线上的文字
+        edgelabels.style("fill-opacity",function(edge){
+            return 1.0;
+        });
+        d3.selectAll(".link").style("stroke-width",function(line){
+            return 1;
+        })
+    })
+    .style("cursor","pointer")
+    .style("fill", function (d, i) {return colors(i)})
+
+node.append("title")
+    .text(function (d) {return d.id});
+
+
+  node.append("title")
+      .text(function(d) { return d.id; });
+
+  var text = node.append("text")
+
+  text.append("tspan")
+      .attr("dy", ".35em")
+      .style("cursor","pointer")
+      .attr("fill","#fff").attr("text-anchor", "middle")
+      .text(function (d) {return d.name})
+
+  simulation
+      .nodes(graph.nodes)
+      .on("tick", ticked);
+
+  simulation.force("link")
+      .links(graph.links);
+
+  function ticked() {
+    link
+        .attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+    node.attr("transform", function (d) {return "translate(" + d.x + ", " + d.y + ")";});
+
+    edgepaths.attr('d', function (d) {
+        return 'M ' + d.source.x + ' ' + d.source.y + ' L ' + d.target.x + ' ' + d.target.y;
+    });
+
+    edgelabels.attr('transform', function (d) {
+        if (d.target.x < d.source.x) {
+            var bbox = this.getBBox();
+
+            var rx = bbox.x + bbox.width / 2;
+            var ry = bbox.y + bbox.height / 2;
+            return 'rotate(180 '+rx+' '+ry+')';
+        }
+        else {
+            return 'rotate(0)';
+        }
+    });
+
+
+  }
+});
+
+function dragstarted(d) {
+  if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+  d.fx = d.x;
+  d.fy = d.y;
+}
+
+function dragged(d) {
+  d.fx = d3.event.x;
+  d.fy = d3.event.y;
+}
+
+function dragended(d) {
+  if (!d3.event.active) simulation.alphaTarget(0);
+  d.fx = null;
+  d.fy = null;
+}
+
+function mouseover() {
+  //显示连接线上的文字
+  edgelabels.style("fill-opacity",function(edge){
+      if( edge.source === node || edge.target === node ){
+          return 1.0;
+      }else{
+          return 0
+      }
+  });
+  //让连接线加粗
+  d3.selectAll(".link").style("stroke-width",function(line){
+      if(line.source.name==node.name || line.target.name==node.name){
+          return 4;
+      }else{
+          return 1;
+      }
+  })
+}
+
+</script>

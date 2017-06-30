@@ -1,0 +1,30 @@
+{
+  "nodes": [
+    {"id": "书广", "group": 1, "name":"书广"},
+    {"id": "国雄", "group": 1, "name":"国雄"},
+    {"id": "李四", "group": 1, "name":"李四"},
+    {"id": "张三", "group": 1, "name":"张三"},
+    {"id": "王五", "group": 1, "name":"王五"},
+    {"id": "赵六", "group": 1, "name":"赵六"},
+    {"id": "李雪主", "group": 1, "name":"李雪主"},
+    {"id": "欧阳", "group": 1, "name":"欧阳"},
+    {"id": "李石", "group": 1, "name":"李石"},
+    {"id": "乔峰", "group": 1, "name":"乔峰"},
+    {"id": "令狐冲", "group": 2, "name":"令狐冲"},
+    {"id": "虚竹", "group": 2, "name":"虚竹"}
+  ],
+  "links": [
+    {"source": "国雄", "target": "乔峰", "value": 1, "type": "同事"},
+    {"source": "李四", "target": "乔峰", "value": 8, "type": "合伙人"},
+    {"source": "张三", "target": "书广", "value": 10, "type": "兄弟"},
+    {"source": "张三", "target": "李四", "value": 6, "type": "朋友"},
+    {"source": "王五", "target": "书广", "value": 1, "type": "盟友"},
+    {"source": "赵六", "target": "欧阳", "value": 1, "type": "基友"},
+    {"source": "李雪主", "target": "书广", "value": 1, "type": "表兄弟"},
+    {"source": "欧阳", "target": "书广", "value": 1, "type": "姐妹"},
+    {"source": "李石", "target": "书广", "value": 2, "type": "师徒"},
+    {"source": "乔峰", "target": "欧阳", "value": 1, "type": "兄妹"},
+    {"source": "虚竹", "target": "令狐冲", "value": 1, "type": "师徒"},
+    {"source": "虚竹", "target": "张三", "value": 3, "type": "同事"}
+  ]
+}
